@@ -6,7 +6,7 @@ A mini online shopping application with Stripe payment integration that allows c
 
 ## Quick Setup
 
-1. Clone the repository:
+
 ```bash
 git clone https://github.com/cyb3rkh4l1d/rishatstore.git
 cd rishatstore
@@ -17,6 +17,19 @@ docker run -p 80:8000 rishatstore
 ```
 ## Design And Modelling
 
+![buy](./image/erd.png)
+
+Relationships:
+
+    Order → OrderItem: One-to-Many
+
+    Item → OrderItem: One-to-Many
+
+Standalone Models (no relationships):
+
+    Discount
+
+    Tax
 
 ### Use Case
 
@@ -34,7 +47,9 @@ Multiple Item Purchase using cart
 
 
 ### APIs Endpoint
+
 ![endpoint](./image/endpoint.png)
+
 Items API
     GET /api/items - Retrieve all available products
     GET /api/items/{id} - Get specific product details
