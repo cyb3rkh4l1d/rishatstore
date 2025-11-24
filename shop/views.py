@@ -72,9 +72,9 @@ class OrderViewSet(CreateModelMixin, RetrieveModelMixin, GenericViewSet):
 
 class StripePaymentView(viewsets.ViewSet):
     """
-            -> POST /api/checkout/sessions/ {order_id: {order_id}}
-        -> POST /api/checkout/cancel/ {order_id: {order_id}}
-        -> POST /api/checkout/confirm/ {order_id: {order_id}}
+            -> POST /api/payment/sessions/ {order_id: {order_id}}
+        -> POST /api/payment/cancel/ {order_id: {order_id}}
+        -> POST /api/payment/confirm/ {order_id: {order_id}}
         -> This view handles all the payment flow
         -> it takes order_id, get or create payment_intent_id from order, use it to perform payment operation.
     """
@@ -109,7 +109,7 @@ class StripePaymentView(viewsets.ViewSet):
     @handle_payment_exceptions
     def sessions(self, request):
         """
-            POST /api/checkout/sessions/ - 
+            POST /api/payment/sessions/ - 
             -> Create payment intent for order
             -> it get amount and currency from order, 
             -> then generates payment_intent_id for the order
@@ -143,7 +143,7 @@ class StripePaymentView(viewsets.ViewSet):
     @handle_payment_exceptions
     def cancel(self, request):
         """
-             POST /api/checkout/cancel/ - 
+             POST /api/payment/cancel/ - 
             -> Cancel payment for specific order by order_id.
             -> it uses order_id to get payment_intent_id from the order.
             -> then check requirements and then cancel the order.
@@ -168,7 +168,7 @@ class StripePaymentView(viewsets.ViewSet):
     @handle_payment_exceptions
     def confirm(self, request):
         """
-             POST /api/checkout/confirm/ - 
+             POST /api/payment/confirm/ - 
             -> Confirm payment for specific order by order_id.
             -> it uses order_id to get payment_intent_id from the order.
             -> then check requirements and then confirm the order.
