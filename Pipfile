@@ -1,0 +1,24 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+requests = "*"
+djangorestframework = "*"
+drf-nested-routers = "*"
+stripe = "*"
+gunicorn = "*"
+python-dotenv = "*"
+whitenoise = "*"
+
+[dev-packages]
+pytest-django = "*"
+pytest-cov = "*"
+model-bakery = "*"
+pytest = "*"
+
+[requires]
+python_version = "3.13"
+python_full_version = "3.13.9"

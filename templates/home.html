@@ -1,0 +1,2362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>РишатStore</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    margin-bottom: 50px;
+    margin-top: 40px;
+}
+
+.header-title {
+    font-size: 2.5em;
+    font-weight: bold;
+    margin-left: -150px;
+    
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.header-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.cart-badge {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255,255,255,0.2);
+    padding: 10px 20px;
+    margin-top: 60px;
+    margin-right: 40px;
+    border-radius: 25px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;            /* ADDED: show pointer */
+    z-index: 1000;              /* ADDED: ensure it's on top */
+}
+
+
+
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .cart-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: rgba(255,255,255,0.2);
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;                /* ADDED: show pointer */
+    z-index: 1000;                  /* ADDED: ensure it's on top */
+}
+        .cart-badge span {
+            background: #4CAF50;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin-left: 10px;
+        }
+        .search-bar {
+            max-width: 500px;
+            margin: 60px auto;
+            margin-top: 30px;
+           
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 15px 20px;
+            
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .item-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        .item-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3em;
+        }
+        .item-content {
+            padding: 25px;
+        }
+        .item-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .item-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .item-price {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .price-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .quantity-display {
+            font-size: 0.6em;
+            color: #999;
+            margin-right: 5px;
+        }
+        .quantity-display.has-items {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .price-btn {
+            width: 35px;
+            height: 35px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 50%;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .price-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+        .price-btn:active {
+            transform: scale(0.95);
+        }
+        .price-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .empty-state {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+        }
+        .empty-state h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        footer {
+            margin-top: 60px;
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        .currency-selector select {
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: none;
+    font-size: 1em;
+    outline: none;
+    cursor: pointer;
+    background: white;
+    color: #333;
+    margin-right: 15px;
+}
+.cart-popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    background: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.cart-box {
+    background: white;
+    width: 400px;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.cart-title {
+    font-size: 1.4em;
+    font-weight: bold;
+}
+
+.close-cart {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+.cart-items {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.cart-total {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+.checkout-btn {
+    width: 100%;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 10px;
+    font-size: 1.2em;
+    cursor: pointer;
+}
+
+
+        /* ---------- RESPONSIVE NAV ---------- */
+
+@media (max-width: 900px) {
+    header {
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+
+    .header-title {
+        margin-left: 0;
+    }
+
+    .header-center {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .search-bar {
+        width: 100% !important;
+        margin: 0 auto;
+    }
+
+    .cart-badge {
+        margin: 0;
+        position: relative;  /* Removes absolute override */
+        top: unset;
+        right: unset;
+    }
+}
+
+/* ---------- MOBILE NAV WITH HAMBURGER ---------- */
+.mobile-menu-btn {
+    display: none;
+    font-size: 2rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: white;
+    margin-left: 10px;
+}
+
+@media (max-width: 600px) {
+    header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-center {
+        display: none; /* hide search bar by default on small screens */
+    }
+
+    .mobile-menu-btn {
+        display: block;
+    }
+
+    .mobile-nav-open .header-center {
+        display: flex; /* show search when menu is open */
+        width: 100%;
+        margin-top: 15px;
+    }
+
+    .mobile-nav-open .cart-badge {
+        margin-top: 15px;
+    }
+}
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.9;
+            transition: opacity 0.3s;
+        }
+        .footer-links a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+        .footer-text {
+            margin-top: 20px;
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+        .footer-powered {
+            margin-top: 10px;
+            font-size: 0.85em;
+            opacity: 0.7;
+        }
+
+        /* Alert Box Styles */
+        .alert-box {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        padding: 28px 36px;
+        min-width: 320px;
+        max-width: 92%;
+        text-align: center;
+            z-index: 99999;
+        transition: transform 0.32s cubic-bezier(.2,.9,.2,1), opacity 0.28s ease;
+        opacity: 0;
+    }
+
+  .alert-box.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+
+    .alert-content h2 {
+        margin: 0 0 8px;
+        font-size: 20px;
+        color: #2e7d32;
+    }
+
+    .alert-content p {
+        margin: 0;
+        font-size: 14px;
+        color: #546e7a;
+    }
+
+    /* Icon inside alert */
+    .alert-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .alert-icon svg {
+        width: 56px;
+        height: 56px;
+    }
+
+    .alert-box.show .alert-icon {
+        animation: popIn 360ms cubic-bezier(.2,.9,.2,1);
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(.6); opacity: 0; }
+        60% { transform: scale(1.08); opacity: 1; }
+        100% { transform: scale(1); }
+    }
+
+    /* Checkmark draw animation */
+    .checkmark-path {
+        stroke: #34a853;
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: drawCheck 420ms ease forwards 120ms;
+    }
+
+    @keyframes drawCheck {
+        to { stroke-dashoffset: 0; }
+    }
+
+  .payment-card .alert-box {
+    margin-top: 20px;
+    background: #e6ffe6;
+    border: 1px solid #4caf50;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transform: scale(0.95);
+    transition: transform 0.3s ease, opacity 0.3s ease;
+  }
+
+  .payment-card .alert-box.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .alert-content h2 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    color: #4caf50;
+  }
+
+  .alert-content p {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+  }
+    </style>
+</head>
+<!-- CART POPUP -->
+
+
+<body>
+    <div id="cart-popup" class="cart-popup">
+        <div class="cart-box">
+            <div class="cart-header">
+                <span class="cart-title">🛒 Cart (<span id="cart-item-count">0</span>)</span>
+                <button class="close-cart" onclick="closeCart()">✕</button>
+            </div>
+    
+            <div id="cart-items-list" class="cart-items"></div>
+    
+            <div class="cart-total">
+                <strong>Total:</strong>
+                <span id="cart-total-price">$0.00</span>
+            </div>
+    
+            <button type="button" class="checkout-btn">Checkout</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <header id="nav-header">
+
+            <!-- LEFT: App Name -->
+            <div class="header-title">🛍️ РишатStore</div>
+        
+            <!-- HAMBURGER BUTTON (MOBILE ONLY) -->
+            <button class="mobile-menu-btn" onclick="toggleMobileNav()">☰</button>
+        
+            <div class="header-center">
+                <div class="search-bar" style="margin: 0; width: 350px;">
+                    <form method="get">
+                        <input type="text" name="search" placeholder="🔍 Search products..." value="{{ search_query }}">
+                    </form>
+                </div>
+            </div>
+            <div class="currency-selector">
+                <select id="currency-select" onchange="changeCurrency()">
+                    <option value="USD">USD $</option>
+                    <option value="EUR">EUR €</option>
+                </select>
+            </div>
+            
+            <!-- RIGHT: Cart -->
+            <div id="cart-badge" class="cart-badge" onclick="openCart()" role="button" tabindex="0" aria-label="Open cart">
+                🛒 Cart: <span id="cart-count">{{ cart_count }}</span>
+            </div>
+        
+        </header>
+       
+        
+
+        {% if request.GET.success %}
+        <div class="success-message">
+            ✅ Payment successful! Thank you for your purchase.
+        </div>
+        {% endif %}
+
+       
+
+ <div class="items-grid">
+    <div style="text-align: center; color: white; padding: 40px;">
+        <div style="font-size: 2em; margin-bottom: 10px;">⏳</div>
+        <p>Loading products...</p>
+    </div>
+</div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <h3>🛍️ РишатStore</h3>
+            <div class="footer-links">
+                <a href="{% url 'home' %}">Home</a>
+                <a href="/admin/">Admin</a>
+                <a href="https://stripe.com" target="_blank">Powered by Ришат</a>
+            </div>
+            <div class="footer-text">
+                <p>Secure online payments • Fast checkout • Trusted by thousands</p>
+            </div>
+            <div class="footer-powered">
+                <p>&copy; 2025 Ришат Payment Store. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+<!--Home Page Loading-->
+<script>
+    function getCSRFToken() {
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+    // Function to fetch items from API and render them
+    async function loadItemsFromAPI() {
+        try {
+            console.log('Fetching items from API...');
+            const response = await fetch('/api/items/');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const items = await response.json();
+            console.log('Items fetched:', items);
+            renderItemsToHTML(items);
+            
+        } catch (error) {
+            console.error('Failed to load items:', error);
+            // Show error state
+            document.querySelector('.items-grid').innerHTML = `
+                <div class="empty-state">
+                    <h2>Failed to load products</h2>
+                    <p>Please check your connection and try again.</p>
+                </div>
+            `;
+        }
+    }
+
+    // Function to render items using your existing HTML structure
+    function renderItemsToHTML(items) {
+        const itemsGrid = document.querySelector('.items-grid');
+        
+        if (!items || items.length === 0) {
+            itemsGrid.innerHTML = `
+                <div class="empty-state">
+                    <h2>No products found</h2>
+                    <p>Try adjusting your search or check back later.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Build HTML using your exact template structure
+        let itemsHTML = '';
+        items.forEach(item => {
+            itemsHTML += `
+                <div class="item-card">
+                    <div class="item-image">
+                        🛒
+                    </div>
+                    <div class="item-content">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-description">${item.description}</div>
+                        <div class="item-price">
+                            <span class="price-value"
+                                  data-base-currency="${item.currency}"
+                                  data-base-price="${item.price}">
+                                ${item.currency} $${item.price}
+                            </span>
+                            <span class="quantity-display" id="qty-${item.id}">
+                            </span>
+                        </div>
+                        <div class="price-controls" style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                            <button class="btn btn-primary" style="width: auto; padding: 15px 32px; margin: 0 5px 0 0; min-width: 110px;" onclick="startStripeCheckoutBuy(${item.id})" id="add-btn-${item.id}">
+                                Buy Item
+                            </button>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="price-btn" onclick="updateCart(${item.id}, 'decrease')" id="decrease-${item.id}" disabled>-</button>
+                                <button class="price-btn" onclick="updateCart(${item.id}, 'increase')" id="increase-${item.id}">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        itemsGrid.innerHTML = itemsHTML;
+        
+        // Update currency display after rendering
+        updatePricesTo(currentCurrency);
+    }
+
+    // Call this function when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadItemsFromAPI();
+        
+        // Your existing cart initialization
+        const currency = document.getElementById('currency-select')?.value || 'USD';
+        CartManager.getOrCreateCart(currency).then(cartId => {
+            currentCartId = cartId;
+            refreshCartCount();
+            loadItemQuantities();
+        }).catch(err => {
+            console.error('Failed to initialize cart:', err);
+        });
+    });
+</script>
+    <!-- Include JavaScript for Alert on Home Page -->
+<script>
+  // Function to get query parameters
+  function getQueryParam(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+  }
+
+    // Show a payment success alert dialog. Returns a Promise that resolves after the alert hides.
+            function showPaymentSuccessAlert({title = 'Payment Completed', message = 'Your payment was successful. Thank you for your purchase!', timeout = 4000, dismissible = true} = {}) {
+                return new Promise((resolve) => {
+                    try {
+                        console.log('[Alert] showPaymentSuccessAlert(): creating alert');
+                        // Append directly to body to avoid being hidden by other containers
+                        const alertBox = document.createElement('div');
+                        alertBox.className = 'alert-box';
+                        // Build inner content
+                        alertBox.innerHTML = `
+                            <div class="alert-content">
+                                <div class="alert-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" role="img" xmlns="http://www.w3.org/2000/svg">
+                                        <circle cx="12" cy="12" r="10" fill="#e8f5e9" stroke="#c8e6c9" stroke-width="1" />
+                                        <path class="checkmark-path" d="M7 12l3 3 7-7" />
+                                    </svg>
+                                </div>
+                                <h2>${title}</h2>
+                                <p>${message}</p>
+                            </div>
+                        `;
+                        // Add optional actions area
+                        const actions = document.createElement('div');
+                        actions.style.marginTop = '12px';
+                        actions.style.display = 'flex';
+                        actions.style.justifyContent = 'center';
+                        actions.style.gap = '8px';
+
+                        if (dismissible) {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'alert-dismiss-btn';
+                            btn.textContent = 'Close';
+                            btn.style.padding = '8px 14px';
+                            btn.style.borderRadius = '8px';
+                            btn.style.border = 'none';
+                            btn.style.cursor = 'pointer';
+                            btn.style.background = '#e0e0e0';
+                            btn.style.fontWeight = '600';
+                            btn.addEventListener('click', () => {
+                                // remove immediately
+                                alertBox.classList.remove('show');
+                                setTimeout(() => { try { alertBox.remove(); } catch (e) {} resolve(); }, 260);
+                            });
+                            actions.appendChild(btn);
+                        }
+
+                        alertBox.appendChild(actions);
+                        document.body.appendChild(alertBox);
+                        // Ensure animation runs
+                        requestAnimationFrame(() => alertBox.classList.add('show'));
+
+                        // If timeout > 0, auto-hide after timeout; otherwise rely on dismiss button
+                        if (timeout > 0) {
+                            setTimeout(() => {
+                                alertBox.classList.remove('show');
+                                setTimeout(() => { try { alertBox.remove(); } catch (e) {} resolve(); }, 260);
+                            }, timeout);
+                        }
+                    } catch (err) {
+                        console.error('[Alert] showPaymentSuccessAlert error:', err);
+                        resolve();
+                    }
+                });
+            }
+
+            
+    // Check if the payment flow added a state query and show an alert.
+    // Use a fallback parent (.container or document.body) in case .payment-card is not present on the home page.
+    const paymentState = getQueryParam('payment');
+    if (paymentState === 'success' || paymentState === 'processing') {
+        // Read amount and currency from query params if provided
+        const paidAmount = getQueryParam('amount');
+        const paidCurrency = getQueryParam('currency') || '';
+
+        // Choose a parent element where the alert will be visible
+        const parent = document.querySelector('.payment-card') || document.querySelector('.container') || document.body;
+
+        // Create and insert the alert box (show paid total when available)
+        const alertBox = document.createElement('div');
+        alertBox.className = 'alert-box';
+
+        const title = paymentState === 'success' ? 'Payment Completed' : 'Payment Processing';
+        const message = paymentState === 'success'
+            ? (paidAmount ? `You paid ${decodeURIComponent(paidCurrency)}${decodeURIComponent(paidAmount)}` : 'Your payment was successful. Thank you for your purchase!')
+            : (paidAmount ? `We received your payment and it is processing: ${decodeURIComponent(paidCurrency)}${decodeURIComponent(paidAmount)}` : 'Your payment is processing. We will update you when it completes.');
+
+        alertBox.innerHTML = `
+            <div class="alert-content">
+                <div class="alert-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="img" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" fill="#e8f5e9" stroke="#c8e6c9" stroke-width="1" />
+                        <path class="checkmark-path" d="M7 12l3 3 7-7" />
+                    </svg>
+                </div>
+                <h2>${title}</h2>
+                <p>${message}</p>
+            </div>
+        `;
+        // Add a dismiss button
+        const actions = document.createElement('div');
+        actions.style.marginTop = '12px';
+        actions.style.display = 'flex';
+        actions.style.justifyContent = 'center';
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.textContent = 'Close';
+        closeBtn.style.padding = '8px 14px';
+        closeBtn.style.borderRadius = '8px';
+        closeBtn.style.border = 'none';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.style.background = '#e0e0e0';
+        closeBtn.style.fontWeight = '600';
+        closeBtn.addEventListener('click', () => {
+            alertBox.classList.remove('show');
+            setTimeout(() => alertBox.remove(), 260);
+        });
+        actions.appendChild(closeBtn);
+        parent.appendChild(alertBox);
+        alertBox.appendChild(actions);
+
+        // Trigger show animation
+        requestAnimationFrame(() => alertBox.classList.add('show'));
+
+        // Clear cart UI (badge and items) so home shows actual empty cart after purchase
+        try {
+            const cartCountEl = document.getElementById('cart-item-count');
+            if (cartCountEl) cartCountEl.textContent = '0';
+            const cartList = document.getElementById('cart-items-list');
+            if (cartList) cartList.innerHTML = '';
+            // remove stored cart id so next visit creates a fresh cart
+            try { localStorage.removeItem('cart_id'); } catch (e) {}
+        } catch (e) { console.error('Error clearing cart UI after payment:', e); }
+
+        // Trigger show animation
+        // Small timeout ensures CSS transition will run if the element is inserted synchronously
+        requestAnimationFrame(() => alertBox.classList.add('show'));
+
+        // Automatically hide the alert after 5 seconds and remove it
+        setTimeout(() => {
+            alertBox.classList.remove('show');
+            setTimeout(() => alertBox.remove(), 300);
+        }, 5000);
+
+        // Remove the query parameters from the URL so refreshing won't show the alert again
+        const url = new URL(window.location);
+        url.searchParams.delete('payment');
+        url.searchParams.delete('amount');
+        url.searchParams.delete('currency');
+        window.history.replaceState({}, document.title, url);
+    }
+</script>
+
+    <script>
+        // API Client for Backend REST API
+        const API = {
+            async createCart(displayCurrency = 'USD') {
+                const response = await fetch('/api/carts/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ display_currency: displayCurrency })
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: 'Failed to create cart' }));
+                    throw new Error(error.error || 'Failed to create cart');
+                }
+                return await response.json();
+            },
+            async getCart(cartId) {
+                const response = await fetch(`/api/carts/${cartId}/`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                });
+                if (!response.ok) throw new Error('Failed to get cart');
+                return await response.json();
+            },
+            async deleteCart(cartId) {
+                const response = await fetch(`/api/carts/${cartId}/`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                });
+                return response.ok;
+            },
+            async getCartItems(cartId) {
+                const response = await fetch(`/api/carts/${cartId}/items/`, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() }
+                });
+                if (!response.ok) throw new Error('Failed to get cart items');
+                return await response.json();
+            },
+            async addItemToCart(cartId, itemId, quantity = 1) {
+                const response = await fetch(`/api/carts/${cartId}/items/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ item_id: itemId, quantity: quantity })
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: 'Failed to add item' }));
+                    throw new Error(error.error || 'Failed to add item');
+                }
+                return await response.json();
+            },
+            async updateCartItem(cartId, cartItemId, quantity) {
+                const response = await fetch(`/api/carts/${cartId}/items/${cartItemId}/`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ quantity: quantity })
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: 'Failed to update item' }));
+                    throw new Error(error.error || 'Failed to update item');
+                }
+                return await response.json();
+            },
+            async removeCartItem(cartId, cartItemId) {
+                const response = await fetch(`/api/carts/${cartId}/items/${cartItemId}/`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                });
+                return response.ok;
+            },
+            async createOrder(cartId, selectedCurrency) {
+                const response = await fetch('/api/orders/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ cart_id: cartId, currency: selectedCurrency })
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: 'Failed to create order' }));
+                    throw new Error(error.error || 'Failed to create order');
+                }
+                return await response.json();
+            },
+            async getOrder(orderId) {
+                const response = await fetch(`/api/orders/${orderId}/`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to get order');
+                }
+                return await response.json();
+            },
+            async buyItem(itemId,selectedCurrency) {
+                const response = await fetch(`/api/buy/${itemId}/?cur=${selectedCurrency}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                });
+                if (!response.ok) {
+                    throw new Error('Invalid Item');
+                }
+                return await response.json();
+            },
+            async createPaymentIntent(orderId) {
+                const response = await fetch('/api/payment/sessions/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ order_id: orderId })
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: 'Failed to create payment intent' }));
+                    throw new Error(error.error || 'Failed to create payment intent');
+                }
+                return await response.json();
+            },
+            async confirmPayment(orderId, paymentIntentId) {
+                const response = await fetch('/api/payment/confirm/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ order_id: orderId, payment_intent_id: paymentIntentId })
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: 'Failed to confirm payment' }));
+                    throw new Error(error.error || 'Failed to confirm payment');
+                }
+                return await response.json();
+            },
+            async switchCurrency(currency) {
+                const response = await fetch('/api/currency/switch/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ currency: currency })
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: 'Failed to switch currency' }));
+                    throw new Error(error.error || 'Failed to switch currency');
+                }
+                return await response.json();
+            },
+async updateCartDisplayCurrency(cartId, currency) { 
+    // Patch the cart to update its display_currency field 
+    const response = await fetch(`/carts/${cartId}/`, { 
+        method: 'PATCH', 
+        headers: { 'Content-Type': 'application/json' }, 
+        credentials: 'same-origin', 
+        body: JSON.stringify({ display_currency: currency }) 
+    }); 
+    
+    if (!response.ok) { 
+        const error = await response.json().catch(() => ({ error: 'Failed to update cart display_currency' })); 
+        throw new Error(error.error || 'Failed to update cart display_currency'); 
+    } 
+
+    // After updating cart currency, also update all cart items' display currency
+    try {
+        const cartItems = await this.getCartItems(cartId);
+        
+        // Update each cart item with the new display currency
+        const updatePromises = cartItems.map(cartItem => 
+            this.updateCartItemCurrency(cartId, cartItem.id, currency)
+        );
+        
+        await Promise.all(updatePromises);
+        console.log(`Updated ${updatePromises.length} cart items to ${currency} currency`);
+    } catch (error) {
+        console.warn('Could not update cart items currency:', error);
+        // Don't throw here - the cart update was successful, just the items couldn't be updated
+    }
+
+    return await response.json(); 
+},
+
+// New method to update individual cart item currency
+async updateCartItemCurrency(cartId, cartItemId, currency) {
+    const response = await fetch(`/carts/${cartId}/items/${cartItemId}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ display_currency: currency })
+    });
+    
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: 'Failed to update cart item currency' }));
+        throw new Error(error.error || 'Failed to update cart item currency');
+    }
+    
+    return await response.json();
+}
+
+        };
+
+        const CartManager = {
+            STORAGE_KEY: 'cart_id',
+            async getOrCreateCart(displayCurrency = 'USD') {
+                let cartId = localStorage.getItem(this.STORAGE_KEY);
+                if (cartId) {
+                    try {
+                        await API.getCart(cartId);
+                        return cartId;
+                    } catch (e) {
+                        localStorage.removeItem(this.STORAGE_KEY);
+                    }
+                }
+                const cart = await API.createCart(displayCurrency);
+                cartId = cart.id;
+                localStorage.setItem(this.STORAGE_KEY, cartId);
+                return cartId;
+            },
+            getCartId() {
+                return localStorage.getItem(this.STORAGE_KEY);
+            },
+            clearCart() {
+                localStorage.removeItem(this.STORAGE_KEY);
+            }
+        };
+
+        // Global cart state
+        let currentCartId = null;
+    let itemQuantities = {}; // itemId -> quantity in cart
+
+        // Initialize cart on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const currency = document.getElementById('currency-select')?.value || 'USD';
+                currentCartId = await CartManager.getOrCreateCart(currency);
+                await refreshCartCount();
+                await loadItemQuantities();
+            } catch (err) {
+                console.error('Failed to initialize cart:', err);
+            }
+        });
+
+        // Load item quantities from cart
+        async function loadItemQuantities() {
+            if (!currentCartId) return;
+            try {
+                const items = await API.getCartItems(currentCartId);
+                itemQuantities = {};
+                items.forEach(cartItem => {
+                    itemQuantities[cartItem.item.id] = cartItem.quantity;
+                });
+                // Update UI
+                Object.keys(itemQuantities).forEach(itemId => {
+                    updateQuantityDisplay(parseInt(itemId), itemQuantities[itemId]);
+                });
+            } catch (err) {
+                console.error('Failed to load item quantities:', err);
+            }
+        }
+
+        // Refresh cart count badge
+        async function refreshCartCount() {
+            if (!currentCartId) {
+                document.getElementById('cart-count').textContent = '0';
+                return;
+            }
+            try {
+                const cart = await API.getCart(currentCartId);
+                const items = await API.getCartItems(currentCartId);
+                const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+                document.getElementById('cart-count').textContent = totalItems;
+            } catch (err) {
+                console.error('Failed to refresh cart count:', err);
+                document.getElementById('cart-count').textContent = '0';
+            }
+        }
+
+        // Open cart popup
+ async function openCart() {
+    if (!currentCartId) {
+        alert('Cart not initialized. Please refresh the page.');
+        return;
+    }
+    try {
+        const items = await API.getCartItems(currentCartId);
+        const cart = await API.getCart(currentCartId);
+
+        const list = document.getElementById("cart-items-list");
+        const count = document.getElementById("cart-item-count");
+        const totalEl = document.getElementById("cart-total-price");
+        list.innerHTML = "";
+
+        const sel = document.getElementById('currency-select');
+        const toCurrency = (sel && sel.value ? sel.value : 'USD').toUpperCase();
+        const currencySymbols = { USD: '$', EUR: '€', GBP: '£', RUB: '₽' };
+        
+        // Get conversion rates for all currencies in the cart
+        const uniqueCurrencies = new Set();
+        items.forEach(cartItem => {
+            const itemCurrency = (cartItem.item.display_currency || cartItem.item.currency || 'USD').toUpperCase();
+            uniqueCurrencies.add(itemCurrency);
+        });
+        
+        // Add cart currency if different
+        const cartCurrency = (cart.display_currency || 'USD').toUpperCase();
+        uniqueCurrencies.add(cartCurrency);
+        
+        // Pre-fetch all needed conversion rates
+        const ratePromises = Array.from(uniqueCurrencies).map(currency => 
+            getRate(currency, toCurrency)
+        );
+        await Promise.all(ratePromises);
+
+        const fmt = function(amount, fromCurrency) {
+            const from = (fromCurrency || 'USD').toUpperCase();
+            const to = toCurrency;
+            
+            // Use cached rate for conversion
+            const rate = rateCache[`${from}_${to}`] || 1;
+            const converted = amount * rate;
+            const symbol = currencySymbols[to] ?? to + ' ';
+            return `${symbol}${Number(converted).toFixed(2)}`;
+        };
+
+        let totalItems = 0;
+        let convertedTotal = 0;
+
+        items.forEach(cartItem => {
+            const item = cartItem.item;
+            const qty = cartItem.quantity;
+            const itemCurrency = (item.display_currency || item.currency || 'USD').toUpperCase();
+            const price = parseFloat(item.converted_price || item.price || 0);
+            
+            // Convert price to selected currency
+            const convertedPrice = price * (rateCache[`${itemCurrency}_${toCurrency}`] || 1);
+            const lineTotal = convertedPrice * qty;
+            
+            totalItems += qty;
+            convertedTotal += lineTotal;
+
+            list.innerHTML += `
+                <div class="cart-item">
+                    <div>
+                        <strong>${item.name}</strong><br>
+                        <small>${fmt(price, itemCurrency)} × ${qty}</small>
+                    </div>
+                    <div>
+                        <strong>${fmt(lineTotal, itemCurrency)}</strong>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Convert cart total if it's in a different currency
+        const cartTotalCurrency = (cart.display_currency || 'USD').toUpperCase();
+        let displayTotal = cart.total_price || 0;
+        if (cartTotalCurrency !== toCurrency) {
+            const cartRate = rateCache[`${cartTotalCurrency}_${toCurrency}`] || 1;
+            displayTotal = displayTotal * cartRate;
+        }
+
+        count.textContent = totalItems;
+        totalEl.textContent = fmt(displayTotal, cartTotalCurrency);
+        document.getElementById("cart-popup").style.display = "flex";
+    } catch (err) {
+        console.error('Failed to load cart:', err);
+        alert('Could not load cart. Try again.');
+    }
+}
+
+function closeCart() {
+    document.getElementById("cart-popup").style.display = "none";
+}
+
+function changeCurrency() {
+    const selected = document.getElementById("currency-select").value;
+    updatePricesTo(selected);
+            // Update cart currency
+            if (currentCartId) {
+                // Persist display currency in session/server and also update the cart itself
+                API.switchCurrency(selected).catch(err => console.error('Failed to switch session currency:', err));
+                API.updateCartDisplayCurrency(currentCartId, selected).catch(err => console.error('Failed to update cart display_currency:', err));
+            }
+ }
+ 
+         function toggleMobileNav() {
+    const header = document.getElementById("nav-header");
+    header.classList.toggle("mobile-nav-open");
+        }
+
+        function updateCartCount(count) {
+            document.getElementById('cart-count').textContent = count;
+        }
+ 
+        function updateQuantityDisplay(itemId, quantity) {
+            const qtyDisplay = document.getElementById('qty-' + itemId);
+            const decreaseBtn = document.getElementById('decrease-' + itemId);
+            if (quantity > 0) {
+                qtyDisplay.textContent = '(' + quantity + ')';
+                qtyDisplay.classList.add('has-items');
+                decreaseBtn.disabled = false;
+            } else {
+                // Hide the quantity display when 0
+                qtyDisplay.textContent = '';
+                qtyDisplay.classList.remove('has-items');
+                decreaseBtn.disabled = true;
+            }
+        }
+
+        async function addToCart(itemId) {
+            if (!currentCartId) {
+                const currency = document.getElementById('currency-select')?.value || 'USD';
+                currentCartId = await CartManager.getOrCreateCart(currency);
+            }
+            try {
+                // Always add 1 to cart
+                const items = await API.getCartItems(currentCartId);
+                const existingItem = items.find(ci => ci.item.id === itemId);
+                if (existingItem) {
+                    await API.updateCartItem(currentCartId, existingItem.id, existingItem.quantity + 1);
+                } else {
+                    await API.addItemToCart(currentCartId, itemId, 1);
+                }
+                await refreshCartCount();
+                await loadItemQuantities();
+                // Show the actual quantity after adding
+                const updatedItems = await API.getCartItems(currentCartId);
+                const updatedItem = updatedItems.find(ci => ci.item.id === itemId);
+                updateQuantityDisplay(itemId, updatedItem ? updatedItem.quantity : 0);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        async function updateCart(itemId, action) {
+            if (!currentCartId) {
+                const currency = document.getElementById('currency-select')?.value || 'USD';
+                currentCartId = await CartManager.getOrCreateCart(currency);
+            }
+            try {
+                // Get current cart items
+                const items = await API.getCartItems(currentCartId);
+                const cartItem = items.find(ci => ci.item.id === itemId);
+                let newQuantity = cartItem ? cartItem.quantity : 0;
+                if (action === 'increase') {
+                    newQuantity += 1;
+                } else if (action === 'decrease') {
+                    newQuantity = Math.max(0, newQuantity - 1);
+                }
+                if (cartItem) {
+                    if (newQuantity === 0) {
+                        await API.removeCartItem(currentCartId, cartItem.id);
+                        updateQuantityDisplay(itemId, 0);
+                    } else {
+                        await API.updateCartItem(currentCartId, cartItem.id, newQuantity);
+                        updateQuantityDisplay(itemId, newQuantity);
+                    }
+                } else if (action === 'increase' && newQuantity === 1) {
+                    await API.addItemToCart(currentCartId, itemId, 1);
+                    updateQuantityDisplay(itemId, 1);
+                }
+                await refreshCartCount();
+                await loadItemQuantities();
+            } catch (error) {
+                console.error('Error updating cart:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+    </script>
+<script>
+    // Currency conversion using free ExchangeRate-API
+    const currencySymbols = { USD: '$', EUR: '€', GBP: '£', RUB: '₽' };
+    const rateCache = {}; // key "FROM_TO" -> rate
+    const selectEl = document.getElementById('currency-select');
+    let currentCurrency = (selectEl && selectEl.value) ? selectEl.value.toUpperCase() : 'USD';
+
+    async function getRate(from, to) {
+        from = (from || 'USD').toUpperCase();
+        to = (to || 'USD').toUpperCase();
+        const key = `${from}_${to}`;
+        
+        // Return cached rate if available
+        if (rateCache[key] !== undefined) return rateCache[key];
+        if (from === to) {
+            rateCache[key] = 1;
+            return 1;
+        }
+
+        try {
+            const resp = await fetch(`https://api.exchangerate-api.com/v4/latest/${from}`);
+            
+            if (!resp.ok) {
+                throw new Error(`API response not ok: ${resp.status}`);
+            }
+            
+            const data = await resp.json();
+            
+            // Check if target currency exists in the response
+            if (data.rates && data.rates[to]) {
+                const rate = data.rates[to];
+                rateCache[key] = rate;
+                return rate;
+            } else {
+                console.warn(`Currency ${to} not found in API response, using 1:1 rate`);
+                rateCache[key] = 1;
+                return 1;
+            }
+        } catch (error) {
+            console.error('Failed to fetch exchange rate:', error);
+            // Fallback to 1:1 rate if API fails
+            rateCache[key] = 1;
+            return 1;
+        }
+    }
+
+    async function updatePricesTo(targetCurrency) {
+        targetCurrency = (targetCurrency || 'USD').toUpperCase();
+        currentCurrency = targetCurrency;
+        const priceEls = Array.from(document.querySelectorAll('.price-value'));
+        if (!priceEls.length) return;
+
+        // Get unique base currencies used on page
+        const bases = Array.from(new Set(priceEls.map(el => ((el.dataset.baseCurrency || 'USD').toUpperCase()))));
+
+        // Preload rates for each base -> target
+        await Promise.all(bases.map(b => getRate(b, targetCurrency)));
+
+        // Update each element
+        priceEls.forEach(el => {
+            const base = (el.dataset.baseCurrency || 'USD').toUpperCase();
+            const basePrice = parseFloat(el.dataset.basePrice) || 0;
+            const rate = rateCache[`${base}_${targetCurrency}`] ?? 1;
+            const converted = basePrice * rate;
+            const symbol = currencySymbols[targetCurrency] ?? (targetCurrency + ' ');
+            el.textContent = `${symbol}${converted.toFixed(2)}`;
+        });
+
+        // If cart open, refresh it so cart prices update
+        const popup = document.getElementById('cart-popup');
+        if (popup && popup.style.display === 'flex') openCart();
+    }
+
+    function changeCurrency() {
+        const selected = document.getElementById('currency-select').value;
+        updatePricesTo(selected);
+        
+        // Update cart currency if needed
+        if (typeof currentCartId !== 'undefined' && currentCartId) {
+            // Your existing cart currency update logic here
+            if (typeof API !== 'undefined') {
+                API.switchCurrency(selected).catch(err => console.error('Failed to switch session currency:', err));
+                API.updateCartDisplayCurrency(currentCartId, selected).catch(err => console.error('Failed to update cart display_currency:', err));
+            }
+        }
+    }
+
+    // Event listeners
+    if (selectEl) {
+        selectEl.addEventListener('change', changeCurrency);
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => updatePricesTo(currentCurrency));
+</script>
+    <script>
+        // Ensure only the single openCart implementation is used.
+        // Also attach the click handler reliably (in case inline onclick was removed).
+        document.addEventListener('DOMContentLoaded', function () {
+            const badge = document.getElementById('cart-badge');
+            if (badge) {
+                badge.addEventListener('click', openCart);
+                badge.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openCart(); }
+                });
+            }
+        });
+    </script>
+
+<script>
+
+function showCancellationMessage() {
+    const cancellationAlert = document.createElement('div');
+    cancellationAlert.className = 'alert-box';
+    cancellationAlert.innerHTML = `
+        <div class="alert-content">
+            <div class="alert-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#ffebee" stroke="#ffcdd2" stroke-width="1" />
+                    <path class="checkmark-path" d="M8 8l8 8M16 8l-8 8" stroke="#f44336" stroke-width="2" />
+                </svg>
+            </div>
+            <h2>Payment Cancelled</h2>
+            <p>Your order has been cancelled. You can try again anytime.</p>
+        </div>
+    `;
+    
+    // Add some custom styling for cancellation
+    const style = document.createElement('style');
+    style.textContent = `
+        .alert-box .alert-icon circle { fill: #ffebee; stroke: #ffcdd2; }
+        .alert-box h2 { color: #f44336; }
+    `;
+    cancellationAlert.appendChild(style);
+    
+    document.body.appendChild(cancellationAlert);
+    
+    // Show animation
+    requestAnimationFrame(() => cancellationAlert.classList.add('show'));
+    
+    // Auto-remove after 4 seconds
+    setTimeout(() => {
+        cancellationAlert.classList.remove('show');
+        setTimeout(() => cancellationAlert.remove(), 300);
+    }, 4000);
+}
+        // Checkout with new order and payment intent flow
+  let currentOrder = null;      
+async function startStripeCheckout() {
+    try {
+                console.log('[Payment] startStripeCheckout() invoked');
+                if (!currentCartId) {
+                    alert('Cart not initialized. Please refresh the page.');
+                    return;
+                }
+
+                // Ensure Stripe is loaded
+        if (typeof Stripe !== 'function') {
+                    alert('Payment system not available (Stripe.js missing).');
+            return;
+        }
+
+                // Get Stripe public key
+        const stripePk = "{{ STRIPE_PUBLIC_KEY|default:'' }}";
+        const stripePk_EUR = "{{ STRIPE_PUBLIC_KEY_EUR|default:'' }}";
+        if (!stripePk || stripePk.trim() === '') {
+                    alert('Stripe public key not configured.');
+            return;
+        }
+        if (!stripePk_EUR || stripePk_EUR.trim() === '') {
+                    alert('Stripe public key not configured.');
+            return;
+        }
+
+                // Check cart has items
+                const items = await API.getCartItems(currentCartId);
+                if (!items || items.length === 0) {
+                    alert('Cart is empty');
+                return;
+            }
+
+                const currencySelect = document.getElementById('currency-select');
+                const selectedCurrency = currencySelect ? currencySelect.value : 'USD';
+
+              
+
+                // Create order from cart
+                const order = await API.createOrder(currentCartId, selectedCurrency);
+                console.log('Order created:', order);
+
+                     currentOrder = order;
+
+                // Create payment intent
+                const paymentData = await API.createPaymentIntent(order.id);
+                console.log('Payment intent created:', paymentData);
+
+                if (paymentData.demo_mode) {
+                    // Demo mode - simulate success
+                    alert('Demo mode: Payment would be processed. Order ID: ' + order.id);
+                    // Clear cart and redirect
+                   // await API.deleteCart(currentCartId);
+                    //CartManager.clearCart();
+                    //currentCartId = null;
+                    window.location.href = '/';
+                    return;
+                }
+
+                // Get full order details with items, discount, tax
+                const fullOrder = currentOrder
+                console.log('Full order details:', fullOrder);
+
+                // Validate order has required fields
+                if (!fullOrder || !fullOrder.items || fullOrder.items.length === 0) {
+                    alert('Order is invalid or has no items. Please try again.');
+                    return;
+                }
+
+                // Initialize Stripe
+    
+                let stripe = Stripe(stripePk);
+                if (selectedCurrency == 'EUR'){
+                    stripe = Stripe(stripePk_EUR);
+                }
+
+                const elements = stripe.elements();
+
+                // Format currency - use fullOrder.currency or fallback to paymentData.currency or USD
+                const currencySymbols = { USD: '$', EUR: '€', GBP: '£', RUB: '₽' };
+                const orderCurrency = (fullOrder.currency || paymentData.currency || 'USD').toUpperCase();
+                const currencySymbol = currencySymbols[selectedCurrency] || selectedCurrency + ' ';
+                
+                // Build order items HTML
+                let orderItemsHTML = '';
+                fullOrder.items.forEach(item => {
+                    const itemTotal = parseFloat(item.unit_price) * item.quantity;
+                    orderItemsHTML += `
+                        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee;">
+                            <div>
+                                <div style="font-weight: 600; color: #333; margin-bottom: 4px;">${item.item.name}</div>
+                                <div style="font-size: 0.9em; color: #666;">${item.quantity} × ${currencySymbol}${parseFloat(item.unit_price).toFixed(2)}</div>
+                            </div>
+                            <div style="font-weight: 600, color: #333;">${currencySymbol}${itemTotal.toFixed(2)}</div>
+                        </div>
+                    `;
+                });
+                
+                // Create beautiful payment form
+                const paymentForm = document.createElement('div');
+                paymentForm.id = 'stripe-checkout-modal';
+                paymentForm.setAttribute('data-modal','stripe-checkout');
+                paymentForm.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
+                        <div style="background: white; border-radius: 20px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                            <!-- Header -->
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 20px 20px 0 0; color: white;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <h2 style="margin: 0; font-size: 1.8em; font-weight: bold;">Complete Payment</h2>
+                                    <button id="cancel-payment" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 1.5em; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s;">×</button>
+                                </div>
+                                <div style="font-size: 0.9em; opacity: 0.9;">Order #${order.id.substring(0, 8)}</div>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div style="padding: 30px;">
+                                <!-- Order Items -->
+                                <div style="margin-bottom: 25px;">
+                                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 1.2em; font-weight: 600;">Order Summary</h3>
+                                    <div style="background: #f8f9fa; border-radius: 10px; padding: 20px;">
+                                        ${orderItemsHTML}
+                                    </div>
+                                </div>
+                                
+                                <!-- Price Breakdown -->
+                                <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                                    <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #666;">
+                                        <span>Subtotal:</span>
+                                        <span>${currencySymbol}${fullOrder.subtotal.toFixed(2)}</span>
+                                    </div>
+                                    ${fullOrder.discount_amount > 0 ? `
+                                    <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #4CAF50; font-weight: 600;">
+                                        <span>Discount (%):</span>
+                                        <span>-${currencySymbol}${fullOrder.discount_amount.toFixed(2)}</span>
+                                    </div>
+                                    ` : ''}
+                                    <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #666;">
+                                        <span style="color: black;">Tax (%):</span>
+                                        <span>+${currencySymbol}${fullOrder.tax_amount.toFixed(2)}</span>
+                                    </div>
+                                    <div style="border-top: 2px solid #667eea; margin-top: 12px; padding-top: 12px; display: flex; justify-content: space-between; font-size: 1.3em; font-weight: bold; color: #333;">
+                                        <span>Total:</span>
+                                        <span style="color: #667eea;">${currencySymbol}${fullOrder.total.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Payment Form -->
+                                <div style="margin-bottom: 25px;">
+                                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 1.2em; font-weight: 600;">Payment Details</h3>
+                                    <div id="card-element" style="border: 2px solid #e0e0e0; padding: 15px; border-radius: 10px; background: white; transition: border-color 0.3s;"></div>
+                                    <div id="card-errors" style="color: #f44336; margin-top: 10px; font-size: 0.9em; min-height: 20px;"></div>
+                                </div>
+                                
+                                <!-- Payment Button -->
+                                <button id="submit-payment" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                                    Pay ${currencySymbol}${fullOrder.total.toFixed(2)}
+                                </button>
+                                
+                                <div style="text-align: center; margin-top: 15px; font-size: 0.85em; color: #999;">
+                                    🔒 Secure payment powered by Stripe
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(paymentForm);
+                
+                // Add hover effect to payment button
+                const submitBtn = document.getElementById('submit-payment');
+                submitBtn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
+                });
+                submitBtn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+                });
+
+                // Create and mount Stripe card element with custom styling
+                const cardElement = elements.create('card', {
+                    style: {
+                        base: {
+                            fontSize: '16px',
+                            color: '#333',
+                            '::placeholder': {
+                                color: '#aab7c4',
+                            },
+                        },
+                        invalid: {
+                            color: '#f44336',
+                        },
+                    },
+                });
+                cardElement.mount('#card-element');
+
+                // Handle card element changes
+                cardElement.on('change', ({error, complete}) => {
+                    const displayError = document.getElementById('card-errors');
+                    const cardElementDiv = document.getElementById('card-element').parentElement;
+                    if (error) {
+                        displayError.textContent = error.message;
+                        cardElementDiv.style.borderColor = '#f44336';
+                    } else {
+                        displayError.textContent = '';
+                        cardElementDiv.style.borderColor = complete ? '#4CAF50' : '#e0e0e0';
+                    }
+                });
+
+                // Handle payment submission
+                submitBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span style="display: inline-block; animation: spin 1s linear infinite;">⏳</span> Processing...';
+                    submitBtn.style.opacity = '0.7';
+                    submitBtn.style.cursor = 'not-allowed';
+
+                    try {
+                        const {error, paymentIntent} = await stripe.confirmCardPayment(
+                            paymentData.client_secret,
+                            {
+                                payment_method: {
+                                    card: cardElement,
+                                }
+                            }
+                        );
+
+        if (error) {
+                            // Handle card errors
+                            document.getElementById('card-errors').textContent = error.message;
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = `Pay ${currencySymbol}${fullOrder.total.toFixed(2)}`;
+                            submitBtn.style.opacity = '1';
+                            submitBtn.style.cursor = 'pointer';
+                        } else if (paymentIntent) {
+                            // Handle different payment intent statuses
+                            if (paymentIntent.status === 'succeeded') {
+                                // Payment succeeded - confirm on backend
+                                try {
+                                    await API.confirmPayment(order.id, paymentIntent.id);
+                                    
+                                    // Clear cart
+                                    await API.deleteCart(currentCartId);
+                                    CartManager.clearCart();
+                                    currentCartId = null;
+                                    
+                                    // Remove payment form (robust removal by id)
+                                    const existingModal = document.getElementById('stripe-checkout-modal');
+                                    if (existingModal && existingModal.parentNode) {
+                                        console.log('[Payment] removing checkout modal');
+                                        existingModal.parentNode.removeChild(existingModal);
+                                    } else {
+                                        console.log('[Payment] no checkout modal found to remove');
+                                    }
+
+                                    // Redirect to home with payment success flag so home page shows the alert
+                                    console.log('[Payment] success branch: removed form, redirecting to home with payment=success');
+                                    // Include amount and currency so home page can show the paid total
+                                    const paidAmount = encodeURIComponent(String(fullOrder.total.toFixed(2)));
+                                    const paidCurrency = encodeURIComponent(String(currencySymbol || ''));
+                                    window.location.href = `/?payment=success&amount=${paidAmount}&currency=${paidCurrency}`;
+                                } catch (confirmError) {
+                                    console.error('Failed to confirm payment:', confirmError);
+                                    document.getElementById('card-errors').textContent = 'Payment succeeded but confirmation failed. Please contact support.';
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerHTML = `Pay ${currencySymbol}${fullOrder.total.toFixed(2)}`;
+                                    submitBtn.style.opacity = '1';
+                                    submitBtn.style.cursor = 'pointer';
+                                }
+                            } else if (paymentIntent.status === 'requires_action') {
+                                // Payment requires additional action (e.g., 3D Secure)
+                                document.getElementById('card-errors').textContent = 'Payment requires additional authentication. Please complete the verification.';
+                                // Stripe will automatically handle the redirect/iframe for 3D Secure
+                                // The paymentIntent will be updated after the user completes the action
+                            } else if (paymentIntent.status === 'processing') {
+                                // Payment is processing
+                                document.getElementById('card-errors').textContent = 'Payment is processing. Please wait...';
+                                // Poll for status update or show a message
+                                setTimeout(async () => {
+                                    try {
+                                        const result = await API.confirmPayment(order.id, paymentIntent.id);
+                                        if (result.status === 'succeeded') {
+                                            await API.deleteCart(currentCartId);
+                                            CartManager.clearCart();
+                                            currentCartId = null;
+                                            const existingModal = document.getElementById('stripe-checkout-modal');
+                                            if (existingModal && existingModal.parentNode) {
+                                                console.log('[Payment] removing checkout modal (processing branch)');
+                                                existingModal.parentNode.removeChild(existingModal);
+                                            } else {
+                                                console.log('[Payment] no checkout modal found to remove (processing branch)');
+                                            }
+                                            console.log('[Payment] processing poll: removed form, redirecting to home with payment=success');
+                                            // Include amount and currency so home page can show the paid total
+                                            const paidAmount = encodeURIComponent(String(fullOrder.total.toFixed(2)));
+                                            const paidCurrency = encodeURIComponent(String(currencySymbol || ''));
+                                            window.location.href = `/?payment=success&amount=${paidAmount}&currency=${paidCurrency}`;
+                                        }
+                                    } catch (e) {
+                                        console.error('Error checking payment status:', e);
+                                    }
+                                }, 2000);
+                            } else {
+                                // Other statuses (requires_payment_method, canceled, etc.)
+                                document.getElementById('card-errors').textContent = `Payment status: ${paymentIntent.status}. Please try again.`;
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = `Pay ${currencySymbol}${fullOrder.total.toFixed(2)}`;
+                                submitBtn.style.opacity = '1';
+                                submitBtn.style.cursor = 'pointer';
+                            }
+        }
+    } catch (err) {
+                        console.error('Payment error:', err);
+                        document.getElementById('card-errors').textContent = 'Payment failed. Please try again.';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = `Pay ${currencySymbol}${fullOrder.total.toFixed(2)}`;
+                        submitBtn.style.opacity = '1';
+                        submitBtn.style.cursor = 'pointer';
+                    }
+                });
+
+                // Handle cancel button (use robust selector so removal works across scopes)
+// Update cancel handler to use the global currentOrder
+document.getElementById('cancel-payment').addEventListener('click', async () => {
+    try {
+        console.log('[Payment] Cancel clicked, cancelling order:', currentOrder?.id);
+        
+        // Call cancel endpoint if order exists
+        if (currentOrder && currentOrder.id) {
+            const response = await fetch(`/api/payment/cancel/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                credentials: 'same-origin',
+                body: JSON.stringify({ order_id: currentOrder.id })
+            });
+            
+            if (response.ok) {
+                console.log('[Payment] Order cancelled successfully');
+                // Optional: Show cancellation message
+                showCancellationMessage();
+            } else {
+                console.warn('[Payment] Cancel endpoint returned error status:', response.status);
+            }
+        }
+    } catch (error) {
+        console.error('[Payment] Failed to cancel order:', error);
+    } finally {
+        // Clear the current order reference
+        currentOrder = null;
+        
+        // Remove the modal
+        const existing = document.getElementById('stripe-checkout-modal');
+        if (existing && existing.parentNode) {
+            existing.parentNode.removeChild(existing);
+        }
+    }
+});
+                
+                // Add CSS animation for loading spinner
+                if (!document.getElementById('payment-spinner-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'payment-spinner-style';
+                    style.textContent = `
+                        @keyframes spin {
+                            from { transform: rotate(0deg); }
+                            to { transform: rotate(360deg); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+            } catch (err) {
+                console.error('Checkout error:', err);
+                alert('Checkout failed: ' + (err.message || 'Unknown error'));
+            }
+        }
+
+        // Attach checkout button handler using event delegation so it works even if the cart popup is recreated later
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest && e.target.closest('.checkout-btn');
+            if (btn) {
+                e.preventDefault();
+                console.log('[Payment] delegated click detected on .checkout-btn');
+                // small debounce to avoid double clicks
+                btn.disabled = true;
+                setTimeout(() => { try { btn.disabled = false; } catch (err) {} }, 1200);
+                startStripeCheckout().catch(err => console.error('startStripeCheckout error:', err));
+            }
+        });
+        
+    </script>
+    <script>
+
+async function startStripeCheckoutBuy(itemId) {
+    try {
+
+                // Ensure Stripe is loaded
+        if (typeof Stripe !== 'function') {
+                    alert('Payment system not available (Stripe.js missing).');
+            return;
+        }
+
+                // Get Stripe public key
+        const stripePk = "{{ STRIPE_PUBLIC_KEY|default:'' }}";
+        const stripePk_EUR = "{{ STRIPE_PUBLIC_KEY_EUR|default:'' }}";
+        if (!stripePk || stripePk.trim() === '') {
+                    alert('Stripe public key not configured.');
+            return;
+        }
+        if (!stripePk_EUR || stripePk_EUR.trim() === '') {
+                    alert('Stripe public key not configured.');
+            return;
+        }
+
+
+                // Create order from cart
+
+                const currencySelect = document.getElementById('currency-select');
+                const selectedCurrency = currencySelect ? currencySelect.value : 'USD';
+
+              
+                const order = await API.buyItem(itemId, selectedCurrency);
+                console.log('Order created:', order);
+                currentOrder = order;
+
+                // Create payment intent
+                const paymentData = await API.createPaymentIntent(order.id);
+                console.log('Payment intent created:', paymentData);
+
+
+                // Get full order details with items, discount, tax
+                const fullOrder = currentOrder
+
+                // Validate order has required fields
+                if (!fullOrder || !fullOrder.items || fullOrder.items.length === 0) {
+                    alert('Order is invalid or has no items. Please try again.');
+                    return;
+                }
+
+                // Initialize Stripe
+                    
+                let stripe = Stripe(stripePk);
+                if (selectedCurrency == 'EUR'){
+                    stripe = Stripe(stripePk_EUR);
+                }
+                const elements = stripe.elements();
+                
+                // Format currency - use fullOrder.currency or fallback to paymentData.currency or USD
+                const currencySymbols = { USD: '$', EUR: '€', GBP: '£', RUB: '₽' };
+                const orderCurrency = (fullOrder.currency || paymentData.currency || 'USD').toUpperCase();
+                const currencySymbol = currencySymbols[selectedCurrency] || selectedCurrency + ' ';
+                
+                // Build order items HTML
+                let orderItemsHTML = '';
+                fullOrder.items.forEach(item => {
+                    const itemTotal = parseFloat(item.unit_price) * item.quantity;
+                    orderItemsHTML += `
+                        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee;">
+                            <div>
+                                <div style="font-weight: 600; color: #333; margin-bottom: 4px;">${item.item.name}</div>
+                                <div style="font-size: 0.9em; color: #666;">${item.quantity} × ${currencySymbol}${parseFloat(item.unit_price).toFixed(2)}</div>
+                            </div>
+                            <div style="font-weight: 600, color: #333;">${currencySymbol}${itemTotal.toFixed(2)}</div>
+                        </div>
+                    `;
+                });
+                
+                // Create beautiful payment form
+                const paymentForm = document.createElement('div');
+                paymentForm.id = 'stripe-checkout-modal';
+                paymentForm.setAttribute('data-modal','stripe-checkout');
+                paymentForm.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto;">
+                        <div style="background: white; border-radius: 20px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                            <!-- Header -->
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 20px 20px 0 0; color: white;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <h2 style="margin: 0; font-size: 1.8em; font-weight: bold;">Complete Payment</h2>
+                                    <button id="cancel-payment" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; font-size: 1.5em; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.3s;">×</button>
+                                </div>
+                                <div style="font-size: 0.9em; opacity: 0.9;">Order #${order.id.substring(0, 8)}</div>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div style="padding: 30px;">
+                                <!-- Order Items -->
+                                <div style="margin-bottom: 25px;">
+                                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 1.2em; font-weight: 600;">Order Summary</h3>
+                                    <div style="background: #f8f9fa; border-radius: 10px; padding: 20px;">
+                                        ${orderItemsHTML}
+                                    </div>
+                                </div>
+                                
+                                <!-- Price Breakdown -->
+                                <div style="margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                                    <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #666;">
+                                        <span>Subtotal:</span>
+                                        <span>${currencySymbol}${fullOrder.subtotal.toFixed(2)}</span>
+                                    </div>
+                                    ${fullOrder.discount_amount > 0 ? `
+                                    <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #4CAF50; font-weight: 600;">
+                                        <span>Discount (%):</span>
+                                        <span>-${currencySymbol}${fullOrder.discount_amount.toFixed(2)}</span>
+                                    </div>
+                                    ` : ''}
+                                    <div style="display: flex; justify-content: space-between; padding: 8px 0; color: #666;">
+                                        <span>Tax (%}):</span>
+                                        <span>+${currencySymbol}${fullOrder.tax_amount.toFixed(2)}</span>
+                                    </div>
+                                    <div style="border-top: 2px solid #667eea; margin-top: 12px; padding-top: 12px; display: flex; justify-content: space-between; font-size: 1.3em; font-weight: bold; color: #333;">
+                                        <span>Total:</span>
+                                        <span style="color: #667eea;">${currencySymbol}${fullOrder.total.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Payment Form -->
+                                <div style="margin-bottom: 25px;">
+                                    <h3 style="margin: 0 0 15px 0; color: #333; font-size: 1.2em; font-weight: 600;">Payment Details</h3>
+                                    <div id="card-element" style="border: 2px solid #e0e0e0; padding: 15px; border-radius: 10px; background: white; transition: border-color 0.3s;"></div>
+                                    <div id="card-errors" style="color: #f44336; margin-top: 10px; font-size: 0.9em; min-height: 20px;"></div>
+                                </div>
+                                
+                                <!-- Payment Button -->
+                                <button id="submit-payment" style="width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                                    Pay ${currencySymbol}${fullOrder.total.toFixed(2)}
+                                </button>
+                                
+                                <div style="text-align: center; margin-top: 15px; font-size: 0.85em; color: #999;">
+                                    🔒 Secure payment powered by Stripe
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(paymentForm);
+                
+                // Add hover effect to payment button
+                const submitBtn = document.getElementById('submit-payment');
+                submitBtn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.5)';
+                });
+                submitBtn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+                });
+
+                // Create and mount Stripe card element with custom styling
+                const cardElement = elements.create('card', {
+                    style: {
+                        base: {
+                            fontSize: '16px',
+                            color: '#333',
+                            '::placeholder': {
+                                color: '#aab7c4',
+                            },
+                        },
+                        invalid: {
+                            color: '#f44336',
+                        },
+                    },
+                });
+                cardElement.mount('#card-element');
+
+                // Handle card element changes
+                cardElement.on('change', ({error, complete}) => {
+                    const displayError = document.getElementById('card-errors');
+                    const cardElementDiv = document.getElementById('card-element').parentElement;
+                    if (error) {
+                        displayError.textContent = error.message;
+                        cardElementDiv.style.borderColor = '#f44336';
+                    } else {
+                        displayError.textContent = '';
+                        cardElementDiv.style.borderColor = complete ? '#4CAF50' : '#e0e0e0';
+                    }
+                });
+
+                // Handle payment submission
+                submitBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span style="display: inline-block; animation: spin 1s linear infinite;">⏳</span> Processing...';
+                    submitBtn.style.opacity = '0.7';
+                    submitBtn.style.cursor = 'not-allowed';
+
+                    try {
+                        const {error, paymentIntent} = await stripe.confirmCardPayment(
+                            paymentData.client_secret,
+                            {
+                                payment_method: {
+                                    card: cardElement,
+                                }
+                            }
+                        );
+
+        if (error) {
+                            // Handle card errors
+                            document.getElementById('card-errors').textContent = error.message;
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = `Pay ${currencySymbol}${fullOrder.total.toFixed(2)}`;
+                            submitBtn.style.opacity = '1';
+                            submitBtn.style.cursor = 'pointer';
+                        } else if (paymentIntent) {
+                            // Handle different payment intent statuses
+                            if (paymentIntent.status === 'succeeded') {
+                                // Payment succeeded - confirm on backend
+                                try {
+                                    await API.confirmPayment(order.id, paymentIntent.id);
+                                    
+                                    // Clear cart
+
+                                    
+                                    // Remove payment form (robust removal by id)
+                                    const existingModal = document.getElementById('stripe-checkout-modal');
+                                    if (existingModal && existingModal.parentNode) {
+                                        console.log('[Payment] removing checkout modal');
+                                        existingModal.parentNode.removeChild(existingModal);
+                                    } else {
+                                        console.log('[Payment] no checkout modal found to remove');
+                                    }
+
+                                    // Redirect to home with payment success flag so home page shows the alert
+                                    console.log('[Payment] success branch: removed form, redirecting to home with payment=success');
+                                    // Include amount and currency so home page can show the paid total
+                                    const paidAmount = encodeURIComponent(String(fullOrder.total.toFixed(2)));
+                                    const paidCurrency = encodeURIComponent(String(currencySymbol || ''));
+                                    window.location.href = `/?payment=success&amount=${paidAmount}&currency=${paidCurrency}`;
+                                } catch (confirmError) {
+                                    console.error('Failed to confirm payment:', confirmError);
+                                    document.getElementById('card-errors').textContent = 'Payment succeeded but confirmation failed. Please contact support.';
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerHTML = `Pay ${currencySymbol}${fullOrder.total.toFixed(2)}`;
+                                    submitBtn.style.opacity = '1';
+                                    submitBtn.style.cursor = 'pointer';
+                                }
+                            } else if (paymentIntent.status === 'requires_action') {
+                                // Payment requires additional action (e.g., 3D Secure)
+                                document.getElementById('card-errors').textContent = 'Payment requires additional authentication. Please complete the verification.';
+                                // Stripe will automatically handle the redirect/iframe for 3D Secure
+                                // The paymentIntent will be updated after the user completes the action
+                            } else if (paymentIntent.status === 'processing') {
+                                // Payment is processing
+                                document.getElementById('card-errors').textContent = 'Payment is processing. Please wait...';
+                                // Poll for status update or show a message
+                                setTimeout(async () => {
+                                    try {
+                                        const result = await API.confirmPayment(order.id, paymentIntent.id);
+                                        if (result.status === 'succeeded') {
+                                           
+                                            const existingModal = document.getElementById('stripe-checkout-modal');
+                                            if (existingModal && existingModal.parentNode) {
+                                                console.log('[Payment] removing checkout modal (processing branch)');
+                                                existingModal.parentNode.removeChild(existingModal);
+                                            } else {
+                                                console.log('[Payment] no checkout modal found to remove (processing branch)');
+                                            }
+                                            console.log('[Payment] processing poll: removed form, redirecting to home with payment=success');
+                                            // Include amount and currency so home page can show the paid total
+                                            const paidAmount = encodeURIComponent(String(fullOrder.total.toFixed(2)));
+                                            const paidCurrency = encodeURIComponent(String(currencySymbol || ''));
+                                            window.location.href = `/?payment=success&amount=${paidAmount}&currency=${paidCurrency}`;
+                                        }
+                                    } catch (e) {
+                                        console.error('Error checking payment status:', e);
+                                    }
+                                }, 2000);
+                            } else {
+                                // Other statuses (requires_payment_method, canceled, etc.)
+                                document.getElementById('card-errors').textContent = `Payment status: ${paymentIntent.status}. Please try again.`;
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = `Pay ${currencySymbol}${fullOrder.total.toFixed(2)}`;
+                                submitBtn.style.opacity = '1';
+                                submitBtn.style.cursor = 'pointer';
+                            }
+        }
+    } catch (err) {
+                        console.error('Payment error:', err);
+                        document.getElementById('card-errors').textContent = 'Payment failed. Please try again.';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = `Pay ${currencySymbol}${fullOrder.total.toFixed(2)}`;
+                        submitBtn.style.opacity = '1';
+                        submitBtn.style.cursor = 'pointer';
+                    }
+                });
+
+                // Handle cancel button (use robust selector so removal works across scopes)
+
+document.getElementById('cancel-payment').addEventListener('click', async () => {
+    try {
+        console.log('[Payment] Cancel clicked, cancelling order:', currentOrder?.id);
+        
+        // Call cancel endpoint if order exists
+        if (currentOrder && currentOrder.id) {
+            const response = await fetch(`/api/payment/cancel/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json','X-CSRFToken':getCSRFToken() },
+                credentials: 'same-origin',
+                body: JSON.stringify({ order_id: currentOrder.id })
+            });
+            
+            
+            if (response.ok) {
+                console.log('[Payment] Order cancelled successfully');
+                // Optional: Show cancellation message
+                showCancellationMessage();
+            } else {
+                console.warn('[Payment] Cancel endpoint returned error status:', response.status);
+            }
+        }
+    } catch (error) {
+        console.error('[Payment] Failed to cancel order:', error);
+    } finally {
+        // Clear the current order reference
+        currentOrder = null;
+        
+        // Remove the modal
+        const existing = document.getElementById('stripe-checkout-modal');
+        if (existing && existing.parentNode) {
+            existing.parentNode.removeChild(existing);
+        }
+    }
+});
+                
+                
+                // Add CSS animation for loading spinner
+                if (!document.getElementById('payment-spinner-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'payment-spinner-style';
+                    style.textContent = `
+                        @keyframes spin {
+                            from { transform: rotate(0deg); }
+                            to { transform: rotate(360deg); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+            } catch (err) {
+                console.error('Checkout error:', err);
+                alert('Checkout failed: ' + (err.message || 'Unknown error'));
+            }
+        }
+
+        // Attach checkout button handler using event delegation so it works even if the cart popup is recreated later
+        document.addEventListener('click', function (e) {
+            
+
+        });
+        
+    </script>
+    <!-- Include JavaScript for Alert on Payment Card -->
+<script>
+    // Guarded attachment for optional .pay-now demo button — prevents script errors when element is absent
+    (function () {
+        const payNowBtn = document.querySelector('.pay-now');
+        if (!payNowBtn) return;
+        payNowBtn.addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent any default form submission or redirection
+
+            // Find the payment card container or fallback to .container or body
+            let parent = document.querySelector('.payment-card') || document.querySelector('.container') || document.body;
+            const alertBox = document.createElement('div');
+            alertBox.className = 'alert-box';
+            alertBox.innerHTML = `
+                    <div class="alert-content">
+                            <div class="alert-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" role="img" xmlns="http://www.w3.org/2000/svg">
+                                            <circle cx="12" cy="12" r="10" fill="#e8f5e9" stroke="#c8e6c9" stroke-width="1" />
+                                            <path class="checkmark-path" d="M7 12l3 3 7-7" />
+                                    </svg>
+                            </div>
+                            <h2>Payment Completed</h2>
+                            <p>Your payment was successful. Thank you for your purchase!</p>
+                    </div>
+            `;
+            parent.appendChild(alertBox);
+            alertBox.classList.add('show');
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+                alertBox.remove();
+            }, 5000);
+        });
+    })();
+</script>
+
+<script>
+        // Robustly hide or remove the checkout modal/backdrop. Returns a Promise.
+        function hideCheckoutModal() {
+                return new Promise((resolve) => {
+                        try {
+                                console.log('[Modal] hideCheckoutModal(): attempting to remove checkout modal and overlays');
+                                // Remove by id
+                                const byId = document.getElementById('stripe-checkout-modal');
+                                if (byId && byId.parentNode) {
+                                        byId.parentNode.removeChild(byId);
+                                        console.log('[Modal] removed #stripe-checkout-modal');
+                                }
+
+                                // Remove elements with data-modal attribute
+                                const dataMods = document.querySelectorAll('[data-modal="stripe-checkout"], [data-modal="true"]');
+                                dataMods.forEach(el => { if (el && el.parentNode) { el.parentNode.removeChild(el); console.log('[Modal] removed element with data-modal'); } });
+
+                                // Remove any element that looks like a modal backdrop (common classes)
+                                const backdrops = document.querySelectorAll('.modal-backdrop, .backdrop, .overlay');
+                                backdrops.forEach(el => { if (el && el.parentNode) { el.parentNode.removeChild(el); console.log('[Modal] removed backdrop'); } });
+
+                                // Remove any full-screen fixed element that contains the card form (best-effort)
+                                const fixedModals = Array.from(document.querySelectorAll('body > div')).filter(d => {
+                                        const cs = window.getComputedStyle(d);
+                                        return cs.position === 'fixed' && cs.width === '100%' && cs.height === '100%';
+                                });
+                                fixedModals.forEach(d => {
+                                        if (d && d.parentNode) { d.parentNode.removeChild(d); console.log('[Modal] removed full-screen fixed div'); }
+                                });
+
+                                // Small timeout to let DOM update
+                                setTimeout(() => resolve(), 60);
+                        } catch (err) {
+                                console.error('[Modal] hideCheckoutModal error:', err);
+                                resolve();
+                        }
+                });
+        }
+</script>
+
+<style>
+    /* Alert Box Styles */
+    .payment-card .alert-box {
+        margin-top: 20px;
+        background: #e6ffe6;
+        border: 1px solid #4caf50;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transform: scale(0.95);
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .payment-card .alert-box.show {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .alert-content h2 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        color: #4caf50;
+    }
+
+    .alert-content p {
+        margin: 0;
+        font-size: 14px;
+        color: #555;
+    }
+</style>
+</body>
+</html>
